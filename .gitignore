@@ -1,7 +1,6 @@
-package.json
-package-lock.json
-node_modules
-shopify.theme.toml
+node_modules/
 .env
+shopify.theme.toml
+
 .DS_Store
 .vscode
