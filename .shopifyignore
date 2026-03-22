@@ -1,0 +1,6 @@
+node_modules/
+package.json
+package-lock.json
+assets/tailwind.input.css
+interview_answers.md
+.gitignore
