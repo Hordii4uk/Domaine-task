@@ -1,0 +1,253 @@
+{% comment %}
+  Renders a custom product card (Domaine take-home assignment).
+
+  Accepts:
+  - card_product: {Object} Product Liquid object  
+  - product_sale_text: {String} Sale badge text
+
+  Required script:
+  - assets/custom-product-card.js (load in the parent section, not here)
+
+  Usage:
+  {% render 'custom-card-product', card_product: section.settings.product, product_sale_text: section.settings.product_sale_text %}
+{% endcomment %}
+
+{%- if card_product and card_product != empty -%}
+  {%- liquid
+    assign selected_variant = card_product.selected_or_first_available_variant
+    assign primary_image = selected_variant.featured_image | default: card_product.featured_image
+    assign secondary_image = selected_variant.metafields.custom.secondary_image
+  -%}
+
+  <div
+    class="
+      tw:flex
+      tw:flex-col
+      tw:font-sans
+      tw:w-full
+      tw:max-w-[315px]
+    "
+    data-product-card
+  >
+
+    {%- comment -%} Image wrapper {%- endcomment -%}
+    <a href="{{ card_product.url }}" class="tw:block" tabindex="-1" aria-hidden="true">
+      <div
+        class="
+          tw:relative
+          tw:aspect-square
+          tw:w-full
+          tw:bg-white
+          tw:border
+          tw:border-gray-200
+          tw:rounded-2xl
+          tw:overflow-hidden
+          tw:p-4
+          tw:flex
+          tw:items-center
+          tw:justify-center
+          tw:group
+        "
+      >
+
+        {%- if primary_image -%}
+          <img
+            data-primary-image
+            src="{{ primary_image | image_url: width: 720 }}"
+            alt="{{ primary_image.alt | default: card_product.title | escape }}"
+            class="
+              tw:h-full
+              tw:w-full
+              tw:object-contain
+              tw:object-center
+              tw:transition-opacity
+              tw:duration-300
+              tw:ease-in-out
+              {% if secondary_image %}tw:group-hover:opacity-0{% endif %}
+            "
+            loading="lazy"
+            width="{{ primary_image.width }}"
+            height="{{ primary_image.height }}"
+          >
+        {%- else -%}
+          {{ 'product-apparel-1' | placeholder_svg_tag: 'tw:h-full tw:w-full tw:object-contain tw:object-center tw:text-gray-300' }}
+        {%- endif -%}
+
+        {%- comment -%} Secondary image — shown on hover {%- endcomment -%}
+        {%- if secondary_image -%}
+          <img
+            data-secondary-image
+            src="{{ secondary_image | image_url: width: 720 }}"
+            alt="{{ secondary_image.alt | default: card_product.title | escape }} - hover"
+            class="
+              tw:absolute
+              tw:inset-0
+              tw:p-4
+              tw:w-full
+              tw:h-full
+              tw:object-contain
+              tw:object-center
+              tw:transition-opacity
+              tw:duration-300
+              tw:ease-in-out
+              tw:opacity-0
+              tw:group-hover:opacity-100
+            "
+            loading="lazy"
+            width="{{ secondary_image.width }}"
+            height="{{ secondary_image.height }}"
+          >
+        {%- else -%}
+          {% comment %} Placeholder image if there is no secondary image in variant metafields {% endcomment %}
+          <img
+            data-secondary-image
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt=""
+            class="
+              tw:absolute
+              tw:inset-0
+              tw:p-4
+              tw:w-full
+              tw:h-full
+              tw:object-contain
+              tw:object-center
+              tw:transition-opacity
+              tw:duration-300
+              tw:ease-in-out
+              tw:opacity-0
+              tw:group-hover:opacity-100
+            "
+            loading="lazy"
+            width="720"
+            height="720"
+          >
+        {%- endif -%}
+
+        {%- comment -%} Sale badge {%- endcomment -%}
+        <span
+          data-sale-badge
+          class="
+            tw:absolute
+            tw:top-3
+            tw:left-3
+            tw:z-10
+            tw:bg-white
+            tw:text-card-sale
+            tw:border
+            tw:border-card-sale
+            tw:font-badge
+            tw:text-[15px]
+            tw:font-medium
+            tw:leading-[18px]
+            tw:px-2
+            tw:py-1
+            tw:rounded-full
+            {% unless selected_variant.compare_at_price > selected_variant.price %}tw:hidden{% endunless %}
+          "
+        >
+          {{ product_sale_text | escape }}
+        </span>
+      </div>
+    </a>
+
+    {%- comment -%} Info wrapper {%- endcomment -%}
+    <div class="tw:flex tw:flex-col tw:mt-3 tw:gap-5">
+
+      {%- comment -%} Color Swatches {%- endcomment -%}
+      <div class="tw:flex tw:gap-3 tw:items-center">
+        {%- for variant in card_product.variants -%}
+          {%- liquid
+            assign var_primary_img = variant.featured_image | default: card_product.featured_image
+            assign var_secondary_img = variant.metafields.custom.secondary_image
+
+            assign on_sale = false
+            if variant.compare_at_price > variant.price
+              assign on_sale = true
+            endif
+          -%}
+
+          <button
+            type="button"
+            class="
+              tw:w-[20px]
+              tw:h-[20px]
+              tw:rounded-full
+              tw:!ring-1
+              tw:!ring-offset-2
+              tw:cursor-pointer
+              tw:transition-all
+              tw:hover:scale-110
+              tw:focus:outline-none
+              {% if selected_variant.id == variant.id %}
+                tw:!ring-card-body
+              {% else %}
+                tw:!ring-transparent
+                tw:hover:!ring-gray-400
+              {% endif %}
+            "
+            style="background-color: {{ variant.option1 | downcase | escape }};"
+            data-swatch
+            data-variant-id="{{ variant.id }}"
+            data-primary-src="{{ var_primary_img | image_url: width: 720 }}"
+            {% if var_secondary_img %}data-secondary-src="{{ var_secondary_img | image_url: width: 720 }}"{% endif %}
+            data-price="{{ variant.price | money }}"
+            data-compare-price="{{ variant.compare_at_price | money }}"
+            data-on-sale="{{ on_sale }}"
+            aria-label="Select {{ variant.option1 | escape }}"
+          ></button>
+        {%- endfor -%}
+      </div>
+
+      {%- comment -%} Product information {%- endcomment -%}
+      <div class="tw:flex tw:flex-col tw:gap-0.5">
+        <div class="tw:text-[14px] tw:leading-[16px] tw:text-card-body tw:font-normal">
+          {{ card_product.vendor | escape }}
+        </div>
+
+        <h3 class="tw:text-[16px] tw:leading-[18px] tw:font-medium tw:text-card-brand tw:mt-0.5">
+          <a href="{{ card_product.url }}" class="tw:hover:underline tw:cursor-pointer">
+            {{ card_product.title | escape }}
+          </a>
+        </h3>
+
+        {%- comment -%} Price {%- endcomment -%}
+        <div
+          class="
+            tw:flex
+            tw:items-center
+            tw:gap-2
+            tw:text-[14px]
+            tw:leading-[16px]
+            tw:mt-0.5
+          "
+          data-price-container
+        >
+          <span
+            data-compare-price-display
+            class="
+              tw:text-card-body
+              tw:line-through
+              tw:font-normal
+              {% unless selected_variant.compare_at_price > selected_variant.price %}tw:hidden{% endunless %}
+            "
+          >
+            {{ selected_variant.compare_at_price | money }}
+          </span>
+          <span
+            data-regular-price
+            class="
+              tw:font-normal
+              {% if selected_variant.compare_at_price > selected_variant.price %}
+                tw:text-card-sale
+              {% else %}
+                tw:text-card-body
+              {% endif %}
+            "
+          >
+            {{ selected_variant.price | money }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+{%- endif -%}

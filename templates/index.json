@@ -9,6 +9,13 @@
  */
 {
   "sections": {
+    "custom_product_card": {
+      "type": "custom-product-card",
+      "name": "Custom Product Card",
+      "settings": {
+        "product": "plain-t-shirt"
+      }
+    },
     "image_banner": {
       "type": "image-banner",
       "blocks": {
@@ -78,6 +85,7 @@
     }
   },
   "order": [
+    "custom_product_card",
     "image_banner",
     "featured_collection"
   ]
