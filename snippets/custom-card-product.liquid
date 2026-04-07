@@ -247,6 +247,25 @@
             {{ selected_variant.price | money }}
           </span>
         </div>
+        <button 
+          class="
+            tw:w-full
+            tw:py-3
+            tw:text-white
+            tw:bg-card-brand
+            tw:cursor-pointer
+            tw:transition-all
+            tw:hover:bg-card-brand/80
+            tw:focus:outline-none
+            tw:focus:ring-2
+            tw:focus:ring-card-brand
+            tw:focus:ring-offset-2
+          "
+          data-add-to-cart
+          data-variant-id="{{ selected_variant.id }}"
+        >
+          {{ 'products.product.add_to_cart' | t }}
+        </button>
       </div>
     </div>
   </div>

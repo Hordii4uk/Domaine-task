@@ -17,6 +17,7 @@ class ProductCardCustom {
     this.saleBadge = element.querySelector('[data-sale-badge]');
     this.regularPriceEl = element.querySelector('[data-regular-price]');
     this.comparePriceEl = element.querySelector('[data-compare-price-display]');
+    this.addToCartBtn = element.querySelector('[data-add-to-cart]');
 
     // Tailwind class tokens stored as variables for maintainability.
     // If the active color or style changes, update only here.
@@ -34,6 +35,11 @@ class ProductCardCustom {
         this._onSwatchClick(swatch);
       });
     });
+
+    this.addToCartBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      this._addToCart(this.addToCartBtn.dataset.variantId);
+    });
   }
 
   _onSwatchClick(swatch) {
@@ -42,6 +48,12 @@ class ProductCardCustom {
     const price = swatch.dataset.price;
     const comparePrice = swatch.dataset.comparePrice;
     const onSale = swatch.dataset.onSale === 'true';
+    const variantId = swatch.dataset.variantId;
+
+    // Update variant ID on add to cart button
+    if(this.addToCartBtn) {
+      this.addToCartBtn.dataset.variantId = variantId;
+    }
 
     // Update "On Sale!" badge
     if (this.saleBadge) {
@@ -95,6 +107,61 @@ class ProductCardCustom {
     activeSwatch.classList.remove(this.inactiveClass);
     activeSwatch.classList.remove(this.hoverClass);
     activeSwatch.classList.add(this.activeClass);
+  }
+
+  async _addToCart(variantId) {
+    const cartDrawer = document.querySelector('cart-drawer') || document.querySelector('cart-notification');
+    // Used FormData instead of JSON (Dawn theme standard)
+    const formData = new FormData();
+    formData.append('id', variantId);
+    formData.append('quantity', '1');
+    formData.append('sections_url', window.location.pathname);
+
+    if (cartDrawer) {
+      const sections = cartDrawer.getSectionsToRender().map((section) => section.id);
+      formData.append('sections', sections.join(','));
+      
+      // Accessibility (A11y): restore focus to active element when popup closes
+      if (cartDrawer.setActiveElement) {
+        cartDrawer.setActiveElement(document.activeElement);
+      }
+    }
+    
+    try {
+      const response = await fetch(window.Shopify.routes.root + 'cart/add.js', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest', // Tells the backend it's an AJAX request
+          'Accept': 'application/javascript'    // Forces backend to return the proper object including 'sections'
+        },
+        body: formData 
+      });
+      
+      const result = await response.json();
+      
+      if (result.status) {
+        console.error(result.description);
+        return;
+      }
+      
+      // Global theme synchronization (updates header cart counter and other listeners)
+      if (window.publish && window.PUB_SUB_EVENTS) {
+        window.publish(window.PUB_SUB_EVENTS.cartUpdate, { 
+          source: 'custom-product-card',
+          productVariantId: variantId,
+          cartData: result
+        });
+      }
+      
+      if (cartDrawer && result.sections) {
+        cartDrawer.renderContents(result); // Injects new HTML and opens the drawer
+      } else {
+        window.location = window.Shopify.routes.root + 'cart';
+      }
+      
+    } catch (error) {
+      console.error("Network error:", error);
+    }
   }
 }
 
