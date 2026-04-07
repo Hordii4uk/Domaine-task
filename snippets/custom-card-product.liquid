@@ -26,6 +26,7 @@
       tw:font-sans
       tw:w-full
       tw:max-w-[315px]
+      tw:group/card
     "
     data-product-card
   >
@@ -46,7 +47,7 @@
           tw:flex
           tw:items-center
           tw:justify-center
-          tw:group
+          tw:group/image
         "
       >
 
@@ -63,7 +64,7 @@
               tw:transition-opacity
               tw:duration-300
               tw:ease-in-out
-              {% if secondary_image %}tw:group-hover:opacity-0{% endif %}
+              {% if secondary_image %}tw:group-hover/image:opacity-0{% endif %}
             "
             loading="lazy"
             width="{{ primary_image.width }}"
@@ -91,7 +92,7 @@
               tw:duration-300
               tw:ease-in-out
               tw:opacity-0
-              tw:group-hover:opacity-100
+              tw:group-hover/image:opacity-100
             "
             loading="lazy"
             width="{{ secondary_image.width }}"
@@ -115,7 +116,7 @@
               tw:duration-300
               tw:ease-in-out
               tw:opacity-0
-              tw:group-hover:opacity-100
+              tw:group-hover/image:opacity-100
             "
             loading="lazy"
             width="720"
@@ -260,6 +261,12 @@
             tw:focus:ring-2
             tw:focus:ring-card-brand
             tw:focus:ring-offset-2
+            tw:opacity-0
+            tw:invisible
+            tw:group-hover/card:visible
+            tw:group-hover/card:opacity-100
+            tw:duration-300
+            tw:ease-in-out
           "
           data-add-to-cart
           data-variant-id="{{ selected_variant.id }}"
